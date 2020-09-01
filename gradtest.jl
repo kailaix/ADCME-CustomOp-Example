@@ -4,6 +4,7 @@ using LinearAlgebra
 using PyPlot
 using Random
 Random.seed!(233)
+ADCME.options.customop.verbose = false
 
 function cubic_solver(x)
     cubic_solver_ = load_op_and_grad("./build/libCubicSolver","cubic_solver")
@@ -12,24 +13,27 @@ function cubic_solver(x)
 end
 
 # TODO: specify your input parameters
+x = rand(10)
 u = cubic_solver(x)
 sess = Session(); init(sess)
-@show run(sess, u)
+out = run(sess, u)
 
-# uncomment it for testing gradients
-error() 
+@show out.^3 + out - x
+
+# # uncomment it for testing gradients
+# error() 
 
 
 # TODO: change your test parameter to `m`
 #       in the case of `multiple=true`, you also need to specify which component you are testings
 # gradient check -- v
-function scalar_function(m)
-    return sum(cubic_solver(x)^2)
+function scalar_function(p)
+    return sum(cubic_solver(p)^2)
 end
 
 # TODO: change `m_` and `v_` to appropriate values
-m_ = constant(rand(10,20))
-v_ = rand(10,20)
+m_ = constant(rand(10))
+v_ = rand(10)
 y_ = scalar_function(m_)
 dy_ = gradients(y_, m_)
 ms_ = Array{Any}(undef, 5)
@@ -59,3 +63,5 @@ plt.gca().invert_xaxis()
 legend()
 xlabel("\$\\gamma\$")
 ylabel("Error")
+savefig("test_grad.png")
+
